@@ -8,7 +8,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.repository.core.*;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.*;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -40,6 +40,7 @@ public class DruidRepositoryFactory extends RepositoryFactorySupport implements 
 
     @Override
     protected Object getTargetRepository(RepositoryMetadata md) {
+        Assert.notNull(md);
         Class<?> domainType = md.getDomainType();
         DefaultRepository df = new DefaultRepository(domainType);
         df.setBackend(backend);
