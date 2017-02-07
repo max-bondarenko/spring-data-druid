@@ -14,7 +14,7 @@ public class DruidRepositoryFactoryBeanSupport<T extends Repository<S, ID>, S, I
         extends RepositoryFactoryBeanSupport<T, S, ID> {
 
     @Autowired
-    private QueryBackend backend;
+    private QueryBackend backend = new DruidTemplateRegistry(); //todo add to Ctx
 
     @Override
     protected RepositoryFactorySupport createRepositoryFactory() {

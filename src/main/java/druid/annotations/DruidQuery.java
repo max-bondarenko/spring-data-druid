@@ -1,5 +1,6 @@
 package druid.annotations;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.annotation.QueryAnnotation;
 
@@ -20,6 +21,7 @@ import java.lang.annotation.*;
 @QueryAnnotation
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
+@ComponentScan("druid.support")
 public @interface DruidQuery {
 
     @AliasFor("templateName") String value() default "";
