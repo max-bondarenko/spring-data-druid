@@ -5,6 +5,7 @@ import druid.query.template.*;
 import druid.repository.DefaultRepository;
 import org.slf4j.*;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.*;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.*;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 
 /**
  * Factory that actually responsible for creation of Repo or really backs Repo on behind.
+ *
  * Created by Maksym_Bondarenko on 2/11/2016.
  */
 public class DruidRepositoryFactory extends RepositoryFactorySupport implements QueryLookupStrategy {
@@ -39,13 +41,15 @@ public class DruidRepositoryFactory extends RepositoryFactorySupport implements 
     }
 
     @Override
-    protected Object getTargetRepository(RepositoryMetadata md) {
+    protected Object getTargetRepository(RepositoryInformation md) {
         Assert.notNull(md);
         Class<?> domainType = md.getDomainType();
         DefaultRepository df = new DefaultRepository(domainType);
         df.setBackend(backend);
         return df;
     }
+
+
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
@@ -56,8 +60,28 @@ public class DruidRepositoryFactory extends RepositoryFactorySupport implements 
         this.backend = backend;
     }
 
+
+    private String getDataSource(DruidQuery methodAnn, Method m, RepositoryMetadata md) {
+        String dataSource = methodAnn.dataSource();
+        if (StringUtils.isEmpty(dataSource)) {
+            DruidQuery classAnn = AnnotationUtils.findAnnotation(md.getRepositoryInterface(), DruidQuery.class);
+            if (classAnn == null) {
+                throw new IllegalArgumentException("For empty dataSource on method " + m.getName()
+                                                           + " must be DruidQuery annotation with dataSource set");
+            }
+            dataSource = classAnn.dataSource();
+        }
+        if (StringUtils.isEmpty(dataSource)) {
+            throw new IllegalArgumentException("Empty dataSource name");
+        }
+        return dataSource;
+    }
+
     @Override
-    public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, NamedQueries namedQueries) {
+    public RepositoryQuery resolveQuery(Method method,
+                                        RepositoryMetadata metadata,
+                                        ProjectionFactory projectionFactory,
+                                        NamedQueries namedQueries) {
         DruidQuery annotation = AnnotationUtils.findAnnotation(method, DruidQuery.class);
         if (annotation != null) {
             TemplatePartTree tree = new TemplatePartTree(method.getName());
@@ -77,22 +101,5 @@ public class DruidRepositoryFactory extends RepositoryFactorySupport implements 
                     : new TemplateQuery(backend, tree, templateName, dataSource, method.getReturnType());
         }
         throw new IllegalArgumentException("Method must be annotated with DruidQuery annotation");
-
-    }
-
-    private String getDataSource(DruidQuery methodAnn, Method m, RepositoryMetadata md) {
-        String dataSource = methodAnn.dataSource();
-        if (StringUtils.isEmpty(dataSource)) {
-            DruidQuery classAnn = AnnotationUtils.findAnnotation(md.getRepositoryInterface(), DruidQuery.class);
-            if (classAnn == null) {
-                throw new IllegalArgumentException("For empty dataSource on method " + m.getName()
-                                                           + " must be DruidQuery annotation with dataSource set");
-            }
-            dataSource = classAnn.dataSource();
-        }
-        if (StringUtils.isEmpty(dataSource)) {
-            throw new IllegalArgumentException("Empty dataSource name");
-        }
-        return dataSource;
     }
 }
