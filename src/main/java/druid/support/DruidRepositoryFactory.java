@@ -49,7 +49,13 @@ public class DruidRepositoryFactory extends RepositoryFactorySupport implements 
         return df;
     }
 
+    @Override
+    public <T> T getRepository(Class<T> repositoryInterface) {
+        T repository = super.getRepository(repositoryInterface);
 
+
+        return repository;
+    }
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
